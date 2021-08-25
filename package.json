@@ -1,54 +1,61 @@
 {
-    "name": "merkle-distributor",
-    "version": "1.0.0",
-    "description": "ElasticDAO's ElasticReward distributor",
-    "main": "index.js",
-    "scripts": {
-      "compile": "npx hardhat compile",
-      "console": "npx hardhat console",
-      "coverage": "npx hardhat coverage --temp artifacts",
-      "deploy": "npx hardhat deploy",
-      "lint": "yarn run prettier && yarn run lint:es6 && yarn run lint:solidity && yarn run lint:tests",
-      "lint:es6": "npx eslint ./*.js deploy/**/*.js",
-      "lint:solidity": "npx solhint src/**/*.sol",
-      "lint:tests": "npx eslint test/**/*.js test/*.js",
-      "prettier": "yarn run prettier:es6 && yarn run prettier:solidity && yarn run prettier:tests",
-      "prettier:es6": "prettier --write ./*.js --write deploy/**/*.js",
-      "prettier:solidity": "prettier --write src/**/*.sol --write src/**/**/*.sol",
-      "prettier:tests": "yarn compile && prettier --write test/**/*.js test/*.js",
-      "test": "yarn run prettier:tests && yarn run lint:tests && npx hardhat test"
-    },
-    "repository": {
-      "type": "git",
-      "url": "git+https://github.com/elasticdao/merkle-distributor.git"
-    },
-    "author": "Phil Elsasser",
-    "license": "GPL-3.0",
-    "bugs": {
-      "url": "https://github.com/elasticdao/merkle-distributor/issues"
-    },
-    "homepage": "https://github.com/elasticdao/merkle-distributor#readme",
-    "devDependencies": {
-      "chai": "^4.3.4",
-      "eslint": "^7.27.0",
-      "eslint-config-airbnb-base": "^14.2.1",
-      "eslint-config-prettier": "^8.3.0",
-      "eslint-plugin-import": "^2.23.4",
-      "eslint-plugin-mocha": "8.0.0",
-      "eslint-plugin-prettier": "^3.4.0",
-      "ethereum-waffle": "^3.3.0",
-      "ethers": "^5.3.0",
-      "hardhat": "^2.3.0",
-      "mocha": "^8.4.0",
-      "prettier": "^2.3.0",
-      "prettier-plugin-solidity": "1.0.0-beta.3"
-    },
-    "dependencies": {
-      "@nomiclabs/hardhat-ethers": "^2.0.2",
-      "@nomiclabs/hardhat-waffle": "^2.0.1",
-      "@openzeppelin/contracts": "^4.1.0",
-      "hardhat-contract-sizer": "^2.0.3",
-      "hardhat-deploy": "^0.8.6"
-    }
+  "name": "merkle-distributor",
+  "version": "1.0.0",
+  "description": "ElasticDAO's ElasticReward distributor",
+  "main": "index.js",
+  "scripts": {
+    "compile": "npx hardhat compile",
+    "console": "npx hardhat console",
+    "coverage": "npx hardhat coverage --temp artifacts",
+    "deploy": "npx hardhat deploy",
+    "lint": "yarn run prettier && yarn run lint:es6 && yarn run lint:solidity && yarn run lint:tests",
+    "lint:es6": "npx eslint ./*.js deploy/**/*.js",
+    "lint:solidity": "npx solhint src/**/*.sol",
+    "lint:tests": "npx eslint test/**/*.js test/*.js",
+    "prettier": "yarn run prettier:es6 && yarn run prettier:solidity && yarn run prettier:tests",
+    "prettier:es6": "prettier --write ./*.js --write deploy/**/*.js",
+    "prettier:solidity": "prettier --write src/**/*.sol --write src/**/**/*.sol",
+    "prettier:tests": "yarn compile && prettier --write test/**/*.js test/*.js",
+    "test": "yarn run prettier:tests && yarn run lint:tests && npx hardhat test",
+    "generate-merkle-root": "ts-node scripts/generate-merkle-root.ts",
+    "generate-merkle-root:example": "ts-node scripts/generate-merkle-root.ts --input scripts/example.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/elasticdao/merkle-distributor.git"
+  },
+  "author": "Phil Elsasser",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/elasticdao/merkle-distributor/issues"
+  },
+  "homepage": "https://github.com/elasticdao/merkle-distributor#readme",
+  "engines": {
+    "node": ">=12"
+  },
+  "devDependencies": {
+    "chai": "^4.3.4",
+    "eslint": "^7.27.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-import": "^2.23.4",
+    "eslint-plugin-mocha": "8.0.0",
+    "eslint-plugin-prettier": "^3.4.0",
+    "ethereum-waffle": "^3.3.0",
+    "ethers": "^5.3.0",
+    "hardhat": "^2.3.0",
+    "mocha": "^8.4.0",
+    "prettier": "^2.3.0",
+    "prettier-plugin-solidity": "1.0.0-beta.3"
+  },
+  "dependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.2",
+    "@nomiclabs/hardhat-waffle": "^2.0.1",
+    "@openzeppelin/contracts": "^4.1.0",
+    "ethereumjs-util": "^7.1.0",
+    "hardhat-contract-sizer": "^2.0.3",
+    "hardhat-deploy": "^0.8.6",
+    "ts-node": "^10.2.1",
+    "typescript": "^4.3.5"
   }
-  
+}
