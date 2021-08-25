@@ -102,3 +102,28 @@ dist
 
 # TernJS port file
 .tern-port
+
+node_modules
+
+#Hardhat files
+cache
+artifacts
+.vscode
+
+.env
+yarn-error.log
+
+#Buidler files
+deployments
+bin
+
+#coverage
+coverage
+coverage.json
+.coverage_cache
+.coverage_contracts
+.coverage_artifacts
+
+miner*.json
+.DS_Store
+.DS_Store?
