@@ -9,6 +9,8 @@ interface IMerkleDistributor {
     // Returns the merkle root of the merkle tree containing account balances available to claim.
     function merkleRoot() external view returns (bytes32);
 
+    function feeAddress() external view returns (address);
+
     // Returns true if the index has been marked claimed.
     function isClaimed(uint256 index) external view returns (bool);
 
@@ -22,4 +24,6 @@ interface IMerkleDistributor {
 
     // This event is triggered whenever a call to #claim succeeds.
     event Claimed(uint256 index, address account, uint256 amount);
+    event MerkleRootUpdated(bytes32 merkleRoot);
+    event FeeAddressUpdated(address feeAddress);
 }

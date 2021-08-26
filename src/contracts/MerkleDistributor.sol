@@ -3,14 +3,16 @@ pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "../interfaces/IMerkleDistributor.sol";
 
-contract MerkleDistributor is IMerkleDistributor {
+contract MerkleDistributor is IMerkleDistributor, Ownable {
     address public immutable override token;
-    bytes32 public immutable override merkleRoot;
+    bytes32 public override merkleRoot;
+    address public override feeAddress;
 
-    // This is a packed array of booleans.
-    mapping(uint256 => uint256) private claimedBitMap;
+    mapping(uint256 => uint256) private claimedBitMap; // packed array of booleans.
+    mapping(address => uint256) private claimedAmount; // claimee address -> claimed amount.
 
     constructor(address _token, bytes32 _merkleRoot) {
         token = _token;
@@ -56,5 +58,20 @@ contract MerkleDistributor is IMerkleDistributor {
         );
 
         emit Claimed(_index, _account, _amount);
+    }
+
+    function setMerkleRoot(bytes32 _merkleRoot) external onlyOwner {
+        require(merkleRoot != _merkleRoot, "MerkleDistributor: DUPLICATE_ROOT");
+        merkleRoot = _merkleRoot;
+        emit MerkleRootUpdated(merkleRoot);
+    }
+
+    function setFeeAddress(address _feeAddress) external onlyOwner {
+        require(
+            feeAddress != _feeAddress,
+            "MerkleDistributor: DUPLICATE_ADDRESS"
+        );
+        feeAddress = _feeAddress;
+        emit FeeAddressUpdated(feeAddress);
     }
 }
