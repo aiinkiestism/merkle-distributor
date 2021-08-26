@@ -23,6 +23,7 @@ module.exports = {
     "object-curly-newline": 0,
     "quotes": [2, "double"],
     "operator-linebreak" : 0,
-    "prettier/prettier": ["error"]
+    "prettier/prettier": ["error"],
+    "no-plusplus": ["error", { "allowForLoopAfterthoughts": true }]
   },
 };
