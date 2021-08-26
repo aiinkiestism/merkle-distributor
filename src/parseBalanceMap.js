@@ -1,5 +1,4 @@
 const { BigNumber, utils } = require('ethers');
-const { ModuleResolutionKind } = require('typescript');
 const { BalanceTree } = require('./BalanceTree');
 
 const { isAddress, getAddress } = utils
