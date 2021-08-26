@@ -1,7 +1,7 @@
 const { expect } = require("chai");
 const { ethers, deployments } = require("hardhat");
-const { BalanceTree } = require("../src/BalanceTree.js");
-const { parseBalanceMap } = require("../src/parseBalanceMap");
+const { BalanceTree } = require("../src/BalanceTree");
+// const { parseBalanceMap } = require("../src/parseBalanceMap");
 
 const ZERO_BYTES32 =
   "0x0000000000000000000000000000000000000000000000000000000000000000";
@@ -80,100 +80,139 @@ describe("MerkleDistributor", () => {
         .withArgs(1, accounts[2].address, 101);
     });
 
-    //       it('transfers the token', async () => {
-    //         const proof0 = tree.getProof(0, accounts[1].address, ethers.BigNumber.from(100))
-    //         expect(await token.balanceOf(accounts[1].address)).to.eq(0)
-    //         await distributor.claim(0, accounts[1].address, 100, proof0, overrides)
-    //         expect(await token.balanceOf(accounts[1].address)).to.eq(100)
-    //       })
+    it("transfers the token", async () => {
+      const proof0 = tree.getProof(
+        0,
+        accounts[1].address,
+        ethers.BigNumber.from(100)
+      );
+      expect(await token.balanceOf(accounts[1].address)).to.be.equal(0);
+      await merkleDistributor.claim(0, accounts[1].address, 100, proof0);
+      expect(await token.balanceOf(accounts[1].address)).to.be.equal(100);
+    });
 
-    //       it('must have enough to transfer', async () => {
-    //         const proof0 = tree.getProof(0, accounts[1].address, ethers.BigNumber.from(100))
-    //         await token.setBalance(distributor.address, 99)
-    //         await expect(distributor.claim(0, accounts[1].address, 100, proof0, overrides)).to.be.revertedWith(
-    //           'ERC20: transfer amount exceeds balance'
-    //         )
-    //       })
+    it("must have enough to transfer", async () => {
+      const proof0 = tree.getProof(
+        0,
+        accounts[1].address,
+        ethers.BigNumber.from(100)
+      );
+      await token.setBalance(merkleDistributor.address, 99);
+      await expect(
+        merkleDistributor.claim(0, accounts[1].address, 100, proof0)
+      ).to.be.revertedWith("ERC20: transfer amount exceeds balance");
+    });
 
-    //       it('sets #isClaimed', async () => {
-    //         const proof0 = tree.getProof(0, accounts[1].address, ethers.BigNumber.from(100))
-    //         expect(await distributor.isClaimed(0)).to.eq(false)
-    //         expect(await distributor.isClaimed(1)).to.eq(false)
-    //         await distributor.claim(0, accounts[1].address, 100, proof0, overrides)
-    //         expect(await distributor.isClaimed(0)).to.eq(true)
-    //         expect(await distributor.isClaimed(1)).to.eq(false)
-    //       })
+    it("sets #isClaimed", async () => {
+      const proof0 = tree.getProof(
+        0,
+        accounts[1].address,
+        ethers.BigNumber.from(100)
+      );
+      expect(await merkleDistributor.isClaimed(0)).to.be.equal(false);
+      expect(await merkleDistributor.isClaimed(1)).to.be.equal(false);
+      await merkleDistributor.claim(0, accounts[1].address, 100, proof0);
+      expect(await merkleDistributor.isClaimed(0)).to.be.equal(true);
+      expect(await merkleDistributor.isClaimed(1)).to.be.equal(false);
+    });
 
-    //       it('cannot allow two claims', async () => {
-    //         const proof0 = tree.getProof(0, accounts[1].address, ethers.BigNumber.from(100))
-    //         await distributor.claim(0, accounts[1].address, 100, proof0, overrides)
-    //         await expect(distributor.claim(0, accounts[1].address, 100, proof0, overrides)).to.be.revertedWith(
-    //           'MerkleDistributor: Drop already claimed.'
-    //         )
-    //       })
+    it("cannot allow two claims", async () => {
+      const proof0 = tree.getProof(
+        0,
+        accounts[1].address,
+        ethers.BigNumber.from(100)
+      );
+      await merkleDistributor.claim(0, accounts[1].address, 100, proof0);
+      await expect(
+        merkleDistributor.claim(0, accounts[1].address, 100, proof0)
+      ).to.be.revertedWith("MerkleDistributor: ALREADY_CLAIMED");
+    });
 
-    //       it('cannot claim more than once: 0 and then 1', async () => {
-    //         await distributor.claim(
-    //           0,
-    //           accounts[1].address,
-    //           100,
-    //           tree.getProof(0, accounts[1].address, ethers.BigNumber.from(100)),
-    //           overrides
-    //         )
-    //         await distributor.claim(
-    //           1,
-    //           accounts[2].address,
-    //           101,
-    //           tree.getProof(1, accounts[2].address, ethers.BigNumber.from(101)),
-    //           overrides
-    //         )
+    it("cannot claim more than once: 0 and then 1", async () => {
+      await merkleDistributor.claim(
+        0,
+        accounts[1].address,
+        100,
+        tree.getProof(0, accounts[1].address, ethers.BigNumber.from(100))
+      );
+      await merkleDistributor.claim(
+        1,
+        accounts[2].address,
+        101,
+        tree.getProof(1, accounts[2].address, ethers.BigNumber.from(101))
+      );
 
-    //         await expect(
-    //           distributor.claim(0, accounts[1].address, 100, tree.getProof(0, accounts[1].address, ethers.BigNumber.from(100)), overrides)
-    //         ).to.be.revertedWith('MerkleDistributor: Drop already claimed.')
-    //       })
+      await expect(
+        merkleDistributor.claim(
+          0,
+          accounts[1].address,
+          100,
+          tree.getProof(0, accounts[1].address, ethers.BigNumber.from(100))
+        )
+      ).to.be.revertedWith("MerkleDistributor: ALREADY_CLAIMED");
+    });
 
-    //       it('cannot claim more than once: 1 and then 0', async () => {
-    //         await distributor.claim(
-    //           1,
-    //           accounts[2].address,
-    //           101,
-    //           tree.getProof(1, accounts[2].address, ethers.BigNumber.from(101)),
-    //           overrides
-    //         )
-    //         await distributor.claim(
-    //           0,
-    //           accounts[1].address,
-    //           100,
-    //           tree.getProof(0, accounts[1].address, ethers.BigNumber.from(100)),
-    //           overrides
-    //         )
+    it("cannot claim more than once: 1 and then 0", async () => {
+      await merkleDistributor.claim(
+        1,
+        accounts[2].address,
+        101,
+        tree.getProof(1, accounts[2].address, ethers.BigNumber.from(101))
+      );
+      await merkleDistributor.claim(
+        0,
+        accounts[1].address,
+        100,
+        tree.getProof(0, accounts[1].address, ethers.BigNumber.from(100))
+      );
 
-    //         await expect(
-    //           distributor.claim(1, accounts[2].address, 101, tree.getProof(1, accounts[2].address, ethers.BigNumber.from(101)), overrides)
-    //         ).to.be.revertedWith('MerkleDistributor: Drop already claimed.')
-    //       })
+      await expect(
+        merkleDistributor.claim(
+          1,
+          accounts[2].address,
+          101,
+          tree.getProof(1, accounts[2].address, ethers.BigNumber.from(101))
+        )
+      ).to.be.revertedWith("MerkleDistributor: ALREADY_CLAIMED");
+    });
 
-    //       it('cannot claim for address other than proof', async () => {
-    //         const proof0 = tree.getProof(0, accounts[1].address, ethers.BigNumber.from(100))
-    //         await expect(distributor.claim(1, accounts[2].address, 101, proof0, overrides)).to.be.revertedWith(
-    //           'MerkleDistributor: Invalid proof.'
-    //         )
-    //       })
+    it("cannot claim for address other than proof", async () => {
+      const proof0 = tree.getProof(
+        0,
+        accounts[1].address,
+        ethers.BigNumber.from(100)
+      );
+      await expect(
+        merkleDistributor.claim(1, accounts[2].address, 101, proof0)
+      ).to.be.revertedWith("MerkleDistributor: INVALID_PROOF");
+    });
 
-    //       it('cannot claim more than proof', async () => {
-    //         const proof0 = tree.getProof(0, accounts[1].address, ethers.BigNumber.from(100))
-    //         await expect(distributor.claim(0, accounts[1].address, 101, proof0, overrides)).to.be.revertedWith(
-    //           'MerkleDistributor: Invalid proof.'
-    //         )
-    //       })
+    it("cannot claim more than proof", async () => {
+      const proof0 = tree.getProof(
+        0,
+        accounts[1].address,
+        ethers.BigNumber.from(100)
+      );
+      await expect(
+        merkleDistributor.claim(0, accounts[1].address, 101, proof0)
+      ).to.be.revertedWith("MerkleDistributor: INVALID_PROOF");
+    });
 
-    //       it('gas', async () => {
-    //         const proof = tree.getProof(0, accounts[1].address, ethers.BigNumber.from(100))
-    //         const tx = await distributor.claim(0, accounts[1].address, 100, proof, overrides)
-    //         const receipt = await tx.wait()
-    //         expect(receipt.gasUsed).to.eq(78466)
-    //       })
+    it("gas", async () => {
+      const proof = tree.getProof(
+        0,
+        accounts[1].address,
+        ethers.BigNumber.from(100)
+      );
+      const tx = await merkleDistributor.claim(
+        0,
+        accounts[1].address,
+        100,
+        proof
+      );
+      const receipt = await tx.wait();
+      expect(receipt.gasUsed).to.be.equal(86961);
+    });
   });
   //     describe('larger tree', () => {
   //       let distributor: Contract
