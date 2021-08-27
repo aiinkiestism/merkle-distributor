@@ -13,7 +13,11 @@ contract MerkleDistributor is IMerkleDistributor, Ownable {
 
     mapping(address => uint256) private claimedLambdaAmount; // claimee address -> claimed Lambda amount.
 
-    constructor(address _token, address _feeAddress, bytes32 _merkleRoot) {
+    constructor(
+        address _token,
+        address _feeAddress,
+        bytes32 _merkleRoot
+    ) {
         token = _token;
         merkleRoot = _merkleRoot;
         emit MerkleRootUpdated(merkleRoot);
@@ -35,8 +39,11 @@ contract MerkleDistributor is IMerkleDistributor, Ownable {
         emit MerkleRootUpdated(merkleRoot);
     }
 
-function setFeeAddress(address _feeAddress) public onlyOwner {
-        require(_feeAddress != address(0), "MerkleDistributor: INVALID_ADDRESS");
+    function setFeeAddress(address _feeAddress) public onlyOwner {
+        require(
+            _feeAddress != address(0),
+            "MerkleDistributor: INVALID_ADDRESS"
+        );
 
         require(
             feeAddress != _feeAddress,
@@ -83,6 +90,4 @@ function setFeeAddress(address _feeAddress) public onlyOwner {
 
         emit Claimed(_index, msg.sender, _claimLambdaAmount);
     }
-
-    
 }
