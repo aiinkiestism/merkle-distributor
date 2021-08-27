@@ -19,7 +19,7 @@ interface IMerkleDistributor {
         uint256 _index,
         uint256 _totalLambdaAmount,
         uint256 _claimLambdaAmount,
-        bytes32[] calldata merkleProof
+        bytes32[] calldata _merkleProof
     ) external;
 
     // This event is triggered whenever a call to #claim succeeds.
