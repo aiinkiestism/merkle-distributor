@@ -1,7 +1,7 @@
 module.exports = async ({ getNamedAccounts, deployments }) => {
   const { deploy, log } = deployments;
   const namedAccounts = await getNamedAccounts();
-  const { admin } = namedAccounts;
+  const { admin, feeRecipient } = namedAccounts;
   const testERC20 = await deployments.get("TestERC20");
   const ZERO_BYTES32 =
     "0x0000000000000000000000000000000000000000000000000000000000000000";
@@ -9,7 +9,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   const deployResult = await deploy("MerkleDistributor", {
     from: admin,
     contract: "MerkleDistributor",
-    args: [testERC20.address, ZERO_BYTES32],
+    args: [testERC20.address, feeRecipient, ZERO_BYTES32],
   });
   if (deployResult.newlyDeployed) {
     log(

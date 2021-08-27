@@ -33,6 +33,7 @@ describe("MerkleDistributor", () => {
       );
       const distributor = await MerkleDistributor.deploy(
         token.address,
+        accounts[9].address,
         ZERO_BYTES32
       );
 
@@ -48,6 +49,75 @@ describe("MerkleDistributor", () => {
           .connect(accounts[1])
           .claim(0, accounts[1].address, 10, [])
       ).to.be.revertedWith("MerkleDistributor: INVALID_PROOF");
+    });
+  });
+
+  describe("setMerkleRoot", () => {
+    let tree;
+
+    beforeEach("deploy", async () => {
+      tree = new BalanceTree([
+        { account: accounts[1].address, amount: ethers.BigNumber.from(100) },
+        { account: accounts[2].address, amount: ethers.BigNumber.from(101) },
+      ]);
+    });
+
+    it("can be set by owner", async () => {
+      expect(await merkleDistributor.merkleRoot()).to.be.equal(ZERO_BYTES32);
+      await merkleDistributor.setMerkleRoot(tree.getHexRoot());
+      expect(await merkleDistributor.merkleRoot()).to.be.equal(
+        tree.getHexRoot()
+      );
+    });
+
+    it("reverts when set by non owner", async () => {
+      await expect(
+        merkleDistributor.connect(accounts[1]).setMerkleRoot(tree.getHexRoot())
+      ).to.be.revertedWith("Ownable: caller is not the owner");
+    });
+
+    it("emits MerkleRootUpdated", async () => {
+      await expect(await merkleDistributor.setMerkleRoot(tree.getHexRoot()))
+        .to.emit(merkleDistributor, "MerkleRootUpdated")
+        .withArgs(tree.getHexRoot());
+    });
+  });
+
+  describe("setFeeAddress", () => {
+    it("can be set by owner", async () => {
+      expect(await merkleDistributor.feeAddress()).to.be.equal(
+        accounts[5].address
+      );
+      await merkleDistributor.setFeeAddress(accounts[9].address);
+      expect(await merkleDistributor.feeAddress()).to.be.equal(
+        accounts[9].address
+      );
+    });
+
+    it("reverts when set by non owner", async () => {
+      await expect(
+        merkleDistributor
+          .connect(accounts[1])
+          .setFeeAddress(accounts[9].address)
+      ).to.be.revertedWith("Ownable: caller is not the owner");
+    });
+
+    it("reverts when the address is a duplicate", async () => {
+      await expect(
+        merkleDistributor.setFeeAddress(accounts[5].address)
+      ).to.be.revertedWith("MerkleDistributor: DUPLICATE_ADDRESS");
+    });
+
+    it("reverts when the address is zero address", async () => {
+      await expect(
+        merkleDistributor.setFeeAddress(ethers.constants.AddressZero)
+      ).to.be.revertedWith("MerkleDistributor: INVALID_ADDRESS");
+    });
+
+    it("emits FeeAddressUpdated", async () => {
+      await expect(await merkleDistributor.setFeeAddress(accounts[9].address))
+        .to.emit(merkleDistributor, "FeeAddressUpdated")
+        .withArgs(accounts[9].address);
     });
   });
 
