@@ -360,55 +360,60 @@ describe("MerkleDistributor", () => {
       expect(receipt.gasUsed).to.equal(97399);
     });
 
-    /* eslint no-await-in-loop: 0 */
-
     it("gas average random distribution", async () => {
-      let total = ethers.BigNumber.from(0);
-      let count = 0;
+      const transactionPromises = [];
       for (let i = 0; i < NUM_LEAVES; i += NUM_LEAVES / NUM_SAMPLES) {
         const proof = tree.getProof(
           i,
           accounts[1].address,
           ethers.BigNumber.from(100)
         );
-        const tx = await merkleDistributor.claim(
-          i,
-          accounts[1].address,
-          100,
-          proof
+
+        transactionPromises.push(
+          merkleDistributor.claim(i, accounts[1].address, 100, proof)
         );
-        const receipt = await tx.wait();
-        total = total.add(receipt.gasUsed);
-        count += 1;
       }
-      const average = total.div(count);
+
+      const transactions = await Promise.all(transactionPromises);
+      const receipts = await Promise.all(transactions.map((tx) => tx.wait()));
+      const total = ethers.BigNumber.from(
+        receipts.reduce(
+          (prevValue, currentValue) => prevValue.add(currentValue.gasUsed),
+          ethers.BigNumber.from(0)
+        )
+      );
+
+      const average = total.div(receipts.length);
       expect(average).to.equal(80936);
     });
 
     it("gas average first 25", async () => {
-      let total = ethers.BigNumber.from(0);
-      let count = 0;
+      const transactionPromises = [];
       for (let i = 0; i < 25; i++) {
         const proof = tree.getProof(
           i,
           accounts[1].address,
           ethers.BigNumber.from(100)
         );
-        const tx = await merkleDistributor.claim(
-          i,
-          accounts[1].address,
-          100,
-          proof
+        transactionPromises.push(
+          merkleDistributor.claim(i, accounts[1].address, 100, proof)
         );
-        const receipt = await tx.wait();
-        total = total.add(receipt.gasUsed);
-        count += 1;
       }
-      const average = total.div(count);
+      const transactions = await Promise.all(transactionPromises);
+      const receipts = await Promise.all(transactions.map((tx) => tx.wait()));
+      const total = ethers.BigNumber.from(
+        receipts.reduce(
+          (prevValue, currentValue) => prevValue.add(currentValue.gasUsed),
+          ethers.BigNumber.from(0)
+        )
+      );
+
+      const average = total.div(receipts.length);
       expect(average).to.eq(64509);
     });
 
     it("no double claims in random distribution", async () => {
+      /* eslint-disable no-await-in-loop */
       for (
         let i = 0;
         i < 25;
@@ -424,6 +429,7 @@ describe("MerkleDistributor", () => {
           merkleDistributor.claim(i, accounts[1].address, 100, proof)
         ).to.be.revertedWith("MerkleDistributor: ALREADY_CLAIMED");
       }
+      /* eslint-enable no-await-in-loop */
     });
   });
 
@@ -473,27 +479,29 @@ describe("MerkleDistributor", () => {
     });
 
     it("all claims work exactly once", async () => {
-      for (const account in claimsOut) {
-        const claim = claimsOut[account];
-        await expect(
-          merkleDistributor.claim(
-            claim.index,
-            account,
-            claim.amount,
-            claim.proof
+      await Promise.all(
+        Object.keys(claimsOut).map(async (account) => {
+          const claim = claimsOut[account];
+          await expect(
+            merkleDistributor.claim(
+              claim.index,
+              account,
+              claim.amount,
+              claim.proof
+            )
           )
-        )
-          .to.emit(merkleDistributor, "Claimed")
-          .withArgs(claim.index, account, claim.amount);
-        await expect(
-          merkleDistributor.claim(
-            claim.index,
-            account,
-            claim.amount,
-            claim.proof
-          )
-        ).to.be.revertedWith("MerkleDistributor: ALREADY_CLAIMED");
-      }
+            .to.emit(merkleDistributor, "Claimed")
+            .withArgs(claim.index, account, claim.amount);
+          return expect(
+            merkleDistributor.claim(
+              claim.index,
+              account,
+              claim.amount,
+              claim.proof
+            )
+          ).to.be.revertedWith("MerkleDistributor: ALREADY_CLAIMED");
+        })
+      );
       expect(await token.balanceOf(merkleDistributor.address)).to.eq(0);
     });
   });
