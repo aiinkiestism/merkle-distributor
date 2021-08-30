@@ -38,7 +38,7 @@ contract TestMintableToken is ERC20, IMintableShares, Ownable {
         onlyMinter
         returns (bool)
     {
-        _mint(_account, _amount); // for this we can assume lambda : 1 token, it doesn't matter for our testing 
+        _mint(_account, _amount); // for this we can assume lambda : 1 token, it doesn't matter for our testing
         return true;
     }
 

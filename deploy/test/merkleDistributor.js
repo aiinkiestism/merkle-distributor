@@ -1,4 +1,4 @@
-module.exports = async ({ getNamedAccounts, deployments }) => {
+module.exports = async ({ getNamedAccounts, deployments, ethers }) => {
   const { deploy, log } = deployments;
   const namedAccounts = await getNamedAccounts();
   const { admin, feeRecipient } = namedAccounts;
@@ -15,10 +15,14 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     log(
       `contract MerkleDistributor deployed at ${deployResult.address} using ${deployResult.receipt.gasUsed} gas`
     );
-    // set our minter address to the new distributor for all tests. 
-    accounts = await ethers.getSigners();
-    token = new ethers.Contract(TestERC20.address, TestERC20.abi, accounts[0]);
-    await token.setMinterAddress(deployResult.address)
+    // set our minter address to the new distributor for all tests.
+    const accounts = await ethers.getSigners();
+    const token = new ethers.Contract(
+      TestERC20.address,
+      TestERC20.abi,
+      accounts[0]
+    );
+    await token.setMinterAddress(deployResult.address);
   }
 };
 module.exports.tags = ["MerkleDistributor"];

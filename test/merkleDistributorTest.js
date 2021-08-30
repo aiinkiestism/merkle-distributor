@@ -16,7 +16,11 @@ describe("MerkleDistributor", () => {
     accounts = await ethers.getSigners();
 
     const TestMintableToken = await deployments.get("TestMintableToken");
-    token = new ethers.Contract(TestMintableToken.address, TestMintableToken.abi, accounts[0]);
+    token = new ethers.Contract(
+      TestMintableToken.address,
+      TestMintableToken.abi,
+      accounts[0]
+    );
 
     const MerkleDistributor = await deployments.get("MerkleDistributor");
     merkleDistributor = new ethers.Contract(
@@ -562,7 +566,7 @@ describe("MerkleDistributor", () => {
       ] = [accounts[2], accounts[1], accounts[3]];
       claimsWSigners = claims;
       expect(tokenTotal).to.eq("0x02ee"); // 750
-      merkleDistributor.setMerkleRoot(merkleRoot);
+      await merkleDistributor.setMerkleRoot(merkleRoot);
     });
 
     it("check the proofs is as expected", () => {
