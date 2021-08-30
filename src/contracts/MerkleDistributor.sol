@@ -6,7 +6,6 @@ import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../interfaces/IMerkleDistributor.sol";
 import "../interfaces/IMintableShares.sol";
-import "hardhat/console.sol";
 
 contract MerkleDistributor is IMerkleDistributor, Ownable {
     address public immutable override token;
