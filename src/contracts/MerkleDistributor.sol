@@ -14,7 +14,7 @@ contract MerkleDistributor is IMerkleDistributor, Ownable {
     address public override feeAddress;
 
     uint16 public feeAmountBasisPoints = 100; // fee amount for claiming in basis points (default 1%)
-    uint256 public constant BASIS_POINTS = 10000;
+    uint16 public constant BASIS_POINTS = 10000;
 
     mapping(address => uint256) private claimedLambdaAmount; // claimee address -> claimed Lambda amount.
 
