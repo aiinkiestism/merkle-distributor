@@ -6,11 +6,15 @@ import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../interfaces/IMerkleDistributor.sol";
 import "../interfaces/IMintableShares.sol";
+import "hardhat/console.sol";
 
 contract MerkleDistributor is IMerkleDistributor, Ownable {
     address public immutable override token;
     bytes32 public override merkleRoot;
     address public override feeAddress;
+
+    uint16 public feeAmountBasisPoints = 100; // fee amount for claiming in basis points (default 1%)
+    uint256 public constant BASIS_POINTS = 10000;
 
     mapping(address => uint256) private claimedLambdaAmount; // claimee address -> claimed Lambda amount.
 
@@ -54,6 +58,15 @@ contract MerkleDistributor is IMerkleDistributor, Ownable {
         emit FeeAddressUpdated(feeAddress);
     }
 
+    function setFeeAmount(uint16 _feeAmountBasisPoints) public onlyOwner {
+        require(
+            _feeAmountBasisPoints != feeAmountBasisPoints,
+            "MerkleDistributor: SAME_FEE"
+        );
+        feeAmountBasisPoints = _feeAmountBasisPoints;
+        emit FeeAmountUpdated(feeAmountBasisPoints);
+    }
+
     function claim(
         uint256 _index,
         uint256 _totalLambdaAmount,
@@ -84,13 +97,22 @@ contract MerkleDistributor is IMerkleDistributor, Ownable {
             alreadyClaimedLambdaAmount +
             _claimLambdaAmount;
 
-        // TODO: split between fee address and claimee.
+        uint256 mintFeeAmount =
+            (_claimLambdaAmount * feeAmountBasisPoints) / BASIS_POINTS;
+        uint256 claimAmountAfterFee = _claimLambdaAmount - mintFeeAmount;
+
+        if (mintFeeAmount != 0) {
+            require(
+                IMintableShares(token).mintShares(feeAddress, mintFeeAmount),
+                "MerkleDistributor: MINT_FAILED"
+            );
+        }
 
         require(
-            IMintableShares(token).mintShares(msg.sender, _claimLambdaAmount),
+            IMintableShares(token).mintShares(msg.sender, claimAmountAfterFee),
             "MerkleDistributor: MINT_FAILED"
         );
 
-        emit Claimed(_index, msg.sender, _claimLambdaAmount);
+        emit Claimed(_index, msg.sender, _claimLambdaAmount, mintFeeAmount);
     }
 }

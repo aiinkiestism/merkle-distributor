@@ -23,7 +23,13 @@ interface IMerkleDistributor {
     ) external;
 
     // This event is triggered whenever a call to #claim succeeds.
-    event Claimed(uint256 index, address account, uint256 lambdaAmountClaimed);
+    event Claimed(
+        uint256 index,
+        address account,
+        uint256 lambdaAmountClaimed,
+        uint256 feeAmount
+    );
     event MerkleRootUpdated(bytes32 merkleRoot);
     event FeeAddressUpdated(address feeAddress);
+    event FeeAmountUpdated(uint16 feeAmountInBasisPoints);
 }

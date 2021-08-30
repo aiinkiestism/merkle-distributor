@@ -10,6 +10,7 @@ describe("MerkleDistributor", () => {
   let accounts;
   let token;
   let merkleDistributor;
+  let feeRecipient;
 
   beforeEach(async () => {
     await deployments.fixture();
@@ -28,6 +29,7 @@ describe("MerkleDistributor", () => {
       MerkleDistributor.abi,
       accounts[0]
     );
+    feeRecipient = accounts[5]; // eslint-disable-line
   });
 
   describe("constructor", () => {
@@ -125,6 +127,32 @@ describe("MerkleDistributor", () => {
     });
   });
 
+  describe("setFeeAmount", () => {
+    it("can be set by owner", async () => {
+      expect(await merkleDistributor.feeAmountBasisPoints()).to.be.equal(100);
+      await merkleDistributor.setFeeAmount(500);
+      expect(await merkleDistributor.feeAmountBasisPoints()).to.be.equal(500);
+    });
+
+    it("reverts when set by non owner", async () => {
+      await expect(
+        merkleDistributor.connect(accounts[1]).setFeeAmount(500)
+      ).to.be.revertedWith("Ownable: caller is not the owner");
+    });
+
+    it("reverts when the amount is the same", async () => {
+      await expect(merkleDistributor.setFeeAmount(100)).to.be.revertedWith(
+        "MerkleDistributor: SAME_FEE"
+      );
+    });
+
+    it("emits FeeAmountUpdated", async () => {
+      await expect(await merkleDistributor.setFeeAmount(500))
+        .to.emit(merkleDistributor, "FeeAmountUpdated")
+        .withArgs(500);
+    });
+  });
+
   describe("two account tree", () => {
     let tree;
 
@@ -146,7 +174,7 @@ describe("MerkleDistributor", () => {
         merkleDistributor.connect(accounts[1]).claim(0, 100, 100, proof0)
       )
         .to.emit(merkleDistributor, "Claimed")
-        .withArgs(0, accounts[1].address, 100);
+        .withArgs(0, accounts[1].address, 100, 1);
       const proof1 = tree.getProof(
         1,
         accounts[2].address,
@@ -156,16 +184,16 @@ describe("MerkleDistributor", () => {
         merkleDistributor.connect(accounts[2]).claim(1, 101, 51, proof1)
       )
         .to.emit(merkleDistributor, "Claimed")
-        .withArgs(1, accounts[2].address, 51);
+        .withArgs(1, accounts[2].address, 51, 0);
 
       await expect(
         merkleDistributor.connect(accounts[2]).claim(1, 101, 50, proof1)
       )
         .to.emit(merkleDistributor, "Claimed")
-        .withArgs(1, accounts[2].address, 50);
+        .withArgs(1, accounts[2].address, 50, 0);
     });
 
-    it("transfers the token", async () => {
+    it("mints the tokens", async () => {
       const proof0 = tree.getProof(
         0,
         accounts[1].address,
@@ -173,7 +201,8 @@ describe("MerkleDistributor", () => {
       );
       expect(await token.balanceOf(accounts[1].address)).to.be.equal(0);
       await merkleDistributor.connect(accounts[1]).claim(0, 100, 100, proof0);
-      expect(await token.balanceOf(accounts[1].address)).to.be.equal(100);
+      expect(await token.balanceOf(accounts[1].address)).to.be.equal(99);
+      expect(await token.balanceOf(feeRecipient.address)).to.be.equal(1);
     });
 
     it("reverts if unable to mint", async () => {
@@ -351,7 +380,7 @@ describe("MerkleDistributor", () => {
         .connect(accounts[1])
         .claim(0, 100, 100, proof);
       const receipt = await tx.wait();
-      expect(receipt.gasUsed).to.be.equal(84660);
+      expect(receipt.gasUsed).to.be.equal(112972);
     });
   });
 
@@ -376,7 +405,7 @@ describe("MerkleDistributor", () => {
       );
       await expect(merkleDistributor.connect(accounts[4]).claim(4, 5, 5, proof))
         .to.emit(merkleDistributor, "Claimed")
-        .withArgs(4, accounts[4].address, 5);
+        .withArgs(4, accounts[4].address, 5, 0);
     });
 
     it("claim index 9", async () => {
@@ -389,7 +418,7 @@ describe("MerkleDistributor", () => {
         merkleDistributor.connect(accounts[9]).claim(9, 10, 10, proof)
       )
         .to.emit(merkleDistributor, "Claimed")
-        .withArgs(9, accounts[9].address, 10);
+        .withArgs(9, accounts[9].address, 10, 0);
     });
 
     it("gas", async () => {
@@ -402,7 +431,7 @@ describe("MerkleDistributor", () => {
         .connect(accounts[9])
         .claim(9, 10, 10, proof);
       const receipt = await tx.wait();
-      expect(receipt.gasUsed).to.eq(88200);
+      expect(receipt.gasUsed).to.eq(90820);
     });
 
     it("gas second down about 15k", async () => {
@@ -423,7 +452,7 @@ describe("MerkleDistributor", () => {
           tree.getProof(1, accounts[1].address, ethers.BigNumber.from(2))
         );
       const receipt = await tx.wait();
-      expect(receipt.gasUsed).to.eq(88200);
+      expect(receipt.gasUsed).to.eq(90820);
     });
   });
 
@@ -476,7 +505,7 @@ describe("MerkleDistributor", () => {
         .connect(accounts[1])
         .claim(50000, 100, 100, proof);
       const receipt = await tx.wait();
-      expect(receipt.gasUsed).to.equal(98806);
+      expect(receipt.gasUsed).to.equal(127119);
     });
 
     it("gas deeper node", async () => {
@@ -489,7 +518,7 @@ describe("MerkleDistributor", () => {
         .connect(accounts[1])
         .claim(90000, 100, 100, proof);
       const receipt = await tx.wait();
-      expect(receipt.gasUsed).to.equal(98840);
+      expect(receipt.gasUsed).to.equal(127153);
     });
 
     it("gas average random distribution", async () => {
@@ -516,7 +545,7 @@ describe("MerkleDistributor", () => {
       );
 
       const average = total.div(receipts.length);
-      expect(average).to.equal(65961);
+      expect(average).to.equal(68582);
     });
 
     it("gas average first 25", async () => {
@@ -541,7 +570,7 @@ describe("MerkleDistributor", () => {
       );
 
       const average = total.div(receipts.length);
-      expect(average).to.eq(65950);
+      expect(average).to.eq(68571);
     });
   });
 
@@ -598,6 +627,7 @@ describe("MerkleDistributor", () => {
     });
 
     it("all claims work exactly once", async () => {
+      const feeInBasisPoints = await merkleDistributor.feeAmountBasisPoints();
       await Promise.all(
         Object.keys(claimsWSigners).map(async (account) => {
           const claim = claimsWSigners[account];
@@ -607,7 +637,12 @@ describe("MerkleDistributor", () => {
               .claim(claim.index, claim.amount, claim.amount, claim.proof)
           )
             .to.emit(merkleDistributor, "Claimed")
-            .withArgs(claim.index, account, claim.amount);
+            .withArgs(
+              claim.index,
+              account,
+              claim.amount,
+              Math.floor((claim.amount * feeInBasisPoints) / 10000)
+            );
           return expect(
             merkleDistributor
               .connect(claim.signer)
