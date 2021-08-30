@@ -15,8 +15,12 @@ describe("MerkleDistributor", () => {
     await deployments.fixture();
     accounts = await ethers.getSigners();
 
-    const TestERC20 = await deployments.get("TestERC20");
-    token = new ethers.Contract(TestERC20.address, TestERC20.abi, accounts[0]);
+    const TestMintableToken = await deployments.get("TestMintableToken");
+    token = new ethers.Contract(
+      TestMintableToken.address,
+      TestMintableToken.abi,
+      accounts[0]
+    );
 
     const MerkleDistributor = await deployments.get("MerkleDistributor");
     merkleDistributor = new ethers.Contract(
@@ -130,7 +134,6 @@ describe("MerkleDistributor", () => {
         { account: accounts[2].address, amount: ethers.BigNumber.from(101) },
       ]);
       await merkleDistributor.setMerkleRoot(tree.getHexRoot());
-      await token.setBalance(merkleDistributor.address, 201);
     });
 
     it("successful claim", async () => {
@@ -173,16 +176,16 @@ describe("MerkleDistributor", () => {
       expect(await token.balanceOf(accounts[1].address)).to.be.equal(100);
     });
 
-    it("must have enough to transfer", async () => {
+    it("reverts if unable to mint", async () => {
       const proof0 = tree.getProof(
         0,
         accounts[1].address,
         ethers.BigNumber.from(100)
       );
-      await token.setBalance(merkleDistributor.address, 99);
+      await token.setMinterAddress(ethers.constants.AddressZero); // remove minting privilege
       await expect(
         merkleDistributor.connect(accounts[1]).claim(0, 100, 100, proof0)
-      ).to.be.revertedWith("ERC20: transfer amount exceeds balance");
+      ).to.be.revertedWith("TestMintableToken: ONLY_MINTER");
     });
 
     it("sets lambdaClaimed", async () => {
@@ -348,7 +351,7 @@ describe("MerkleDistributor", () => {
         .connect(accounts[1])
         .claim(0, 100, 100, proof);
       const receipt = await tx.wait();
-      expect(receipt.gasUsed).to.be.equal(82626);
+      expect(receipt.gasUsed).to.be.equal(84660);
     });
   });
 
@@ -363,7 +366,6 @@ describe("MerkleDistributor", () => {
       );
 
       await merkleDistributor.setMerkleRoot(tree.getHexRoot());
-      await token.setBalance(merkleDistributor.address, 201);
     });
 
     it("claim index 4", async () => {
@@ -400,7 +402,7 @@ describe("MerkleDistributor", () => {
         .connect(accounts[9])
         .claim(9, 10, 10, proof);
       const receipt = await tx.wait();
-      expect(receipt.gasUsed).to.eq(86166);
+      expect(receipt.gasUsed).to.eq(88200);
     });
 
     it("gas second down about 15k", async () => {
@@ -421,7 +423,7 @@ describe("MerkleDistributor", () => {
           tree.getProof(1, accounts[1].address, ethers.BigNumber.from(2))
         );
       const receipt = await tx.wait();
-      expect(receipt.gasUsed).to.eq(86166);
+      expect(receipt.gasUsed).to.eq(88200);
     });
   });
 
@@ -444,10 +446,6 @@ describe("MerkleDistributor", () => {
     });
 
     beforeEach(async () => {
-      await token.setBalance(
-        merkleDistributor.address,
-        ethers.constants.MaxInt256 // using int to avoid overflow with supply (vs uint.max)
-      );
       await merkleDistributor.setMerkleRoot(tree.getHexRoot());
     });
 
@@ -478,7 +476,7 @@ describe("MerkleDistributor", () => {
         .connect(accounts[1])
         .claim(50000, 100, 100, proof);
       const receipt = await tx.wait();
-      expect(receipt.gasUsed).to.equal(96772);
+      expect(receipt.gasUsed).to.equal(98806);
     });
 
     it("gas deeper node", async () => {
@@ -491,7 +489,7 @@ describe("MerkleDistributor", () => {
         .connect(accounts[1])
         .claim(90000, 100, 100, proof);
       const receipt = await tx.wait();
-      expect(receipt.gasUsed).to.equal(96806);
+      expect(receipt.gasUsed).to.equal(98840);
     });
 
     it("gas average random distribution", async () => {
@@ -518,7 +516,7 @@ describe("MerkleDistributor", () => {
       );
 
       const average = total.div(receipts.length);
-      expect(average).to.equal(63927);
+      expect(average).to.equal(65961);
     });
 
     it("gas average first 25", async () => {
@@ -543,7 +541,7 @@ describe("MerkleDistributor", () => {
       );
 
       const average = total.div(receipts.length);
-      expect(average).to.eq(63916);
+      expect(average).to.eq(65950);
     });
   });
 
@@ -568,8 +566,7 @@ describe("MerkleDistributor", () => {
       ] = [accounts[2], accounts[1], accounts[3]];
       claimsWSigners = claims;
       expect(tokenTotal).to.eq("0x02ee"); // 750
-      merkleDistributor.setMerkleRoot(merkleRoot);
-      await token.setBalance(merkleDistributor.address, tokenTotal);
+      await merkleDistributor.setMerkleRoot(merkleRoot);
     });
 
     it("check the proofs is as expected", () => {
@@ -618,7 +615,6 @@ describe("MerkleDistributor", () => {
           ).to.be.revertedWith("MerkleDistributor: INVALID_CLAIM_AMOUNT");
         })
       );
-      expect(await token.balanceOf(merkleDistributor.address)).to.eq(0);
     });
   });
 });

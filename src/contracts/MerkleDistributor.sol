@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../interfaces/IMerkleDistributor.sol";
+import "../interfaces/IMintableShares.sol";
 
 contract MerkleDistributor is IMerkleDistributor, Ownable {
     address public immutable override token;
@@ -82,10 +83,12 @@ contract MerkleDistributor is IMerkleDistributor, Ownable {
         claimedLambdaAmount[msg.sender] =
             alreadyClaimedLambdaAmount +
             _claimLambdaAmount;
-        // TODO: translate lambda amount to token amount....
+
+        // TODO: split between fee address and claimee.
+
         require(
-            IERC20(token).transfer(msg.sender, _claimLambdaAmount),
-            "MerkleDistributor: TRANSFER_FAILED"
+            IMintableShares(token).mintShares(msg.sender, _claimLambdaAmount),
+            "MerkleDistributor: MINT_FAILED"
         );
 
         emit Claimed(_index, msg.sender, _claimLambdaAmount);
