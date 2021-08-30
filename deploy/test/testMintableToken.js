@@ -3,9 +3,9 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   const namedAccounts = await getNamedAccounts();
   const { admin } = namedAccounts;
   const initialSupply = 1000000000000;
-  const deployResult = await deploy("TestERC20", {
+  const deployResult = await deploy("TestMintableToken", {
     from: admin,
-    contract: "TestERC20",
+    contract: "TestMintableToken",
     args: ["TestToken", "TST", initialSupply],
   });
   if (deployResult.newlyDeployed) {
@@ -14,4 +14,4 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     );
   }
 };
-module.exports.tags = ["TestERC20"];
+module.exports.tags = ["TestMintableToken"];
