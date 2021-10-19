@@ -25,7 +25,7 @@ interface IMerkleDistributor {
     // This event is triggered whenever a call to #claim succeeds.
     event Claimed(
         uint256 index,
-        address account,
+        address indexed account,
         uint256 lambdaAmountClaimed,
         uint256 feeAmount
     );
