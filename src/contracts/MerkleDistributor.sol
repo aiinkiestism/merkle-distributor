@@ -28,6 +28,12 @@ contract MerkleDistributor is IMerkleDistributor, Ownable {
         setFeeAddress(_feeAddress);
     }
 
+   
+
+    /**
+     * @notice Returns the amount of lambda that has been claimed by this address since the creation of this contract
+     * @param _claimee address 
+     */
     function lambdaClaimed(address _claimee)
         external
         view
@@ -37,13 +43,21 @@ contract MerkleDistributor is IMerkleDistributor, Ownable {
         return claimedLambdaAmount[_claimee];
     }
 
+    /**
+     * @notice Allows a new merkle root to be set by the contracts owner (the DAO)
+     * @param _merkleRoot the merkle root to be set 
+     */
     function setMerkleRoot(bytes32 _merkleRoot) public onlyOwner {
         require(merkleRoot != _merkleRoot, "MerkleDistributor: DUPLICATE_ROOT");
         merkleRoot = _merkleRoot;
         emit MerkleRootUpdated(merkleRoot);
     }
 
-    function setFeeAddress(address _feeAddress) public onlyOwner {
+    /**
+     * @notice Allows the contract owner (the DAO) to set a new fee address that can receive ERC20 based fees
+     * @param _feeAddress the merkle root to be set 
+     */
+     function setFeeAddress(address _feeAddress) public onlyOwner {
         require(
             _feeAddress != address(0),
             "MerkleDistributor: INVALID_ADDRESS"
@@ -57,6 +71,10 @@ contract MerkleDistributor is IMerkleDistributor, Ownable {
         emit FeeAddressUpdated(feeAddress);
     }
 
+    /**
+     * @notice Allows the contract owner (the DAO) to set a new fee amount to be collected on claiming
+     * @param _feeAmountBasisPoints fee amount denominated in basis points
+     */
     function setFeeAmount(uint16 _feeAmountBasisPoints) public onlyOwner {
         require(
             _feeAmountBasisPoints != feeAmountBasisPoints,
@@ -66,6 +84,13 @@ contract MerkleDistributor is IMerkleDistributor, Ownable {
         emit FeeAmountUpdated(feeAmountBasisPoints);
     }
 
+    /**
+     * @notice Allows the contract owner (the DAO) to set a new fee amount to be collected on claiming
+     * @param _index the index of the merkle claim
+     * @param _totalLambdaAmount the total lambda amount in the tree
+     * @param _claimLambdaAmount the amount the users desires to claim
+     * @param _merkleProof bytes32[] proof for the claim
+     */
     function claim(
         uint256 _index,
         uint256 _totalLambdaAmount,
