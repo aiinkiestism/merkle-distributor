@@ -17,14 +17,12 @@
     "prettier:solidity": "prettier --write src/**/*.sol --write src/**/**/*.sol",
     "prettier:tests": "yarn compile && prettier --write test/**/*.js test/*.js",
     "test": "yarn run prettier:tests && yarn run lint:tests && npx hardhat test",
-    "generate-merkle-root": "ts-node scripts/generate-merkle-root.ts",
-    "generate-merkle-root:example": "ts-node scripts/generate-merkle-root.ts --input scripts/example.json"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/elasticdao/merkle-distributor.git"
   },
-  "author": "Phil Elsasser",
+  "author": "0xean",
   "license": "GPL-3.0",
   "bugs": {
     "url": "https://github.com/elasticdao/merkle-distributor/issues"
