@@ -380,7 +380,7 @@ describe("MerkleDistributor", () => {
         .connect(accounts[1])
         .claim(0, 100, 100, proof);
       const receipt = await tx.wait();
-      expect(receipt.gasUsed).to.be.equal(112972);
+      expect(receipt.gasUsed).to.be.equal(113079);
     });
   });
 
@@ -431,7 +431,7 @@ describe("MerkleDistributor", () => {
         .connect(accounts[9])
         .claim(9, 10, 10, proof);
       const receipt = await tx.wait();
-      expect(receipt.gasUsed).to.eq(90820);
+      expect(receipt.gasUsed).to.eq(90927);
     });
 
     it("gas second down about 15k", async () => {
@@ -452,7 +452,7 @@ describe("MerkleDistributor", () => {
           tree.getProof(1, accounts[1].address, ethers.BigNumber.from(2))
         );
       const receipt = await tx.wait();
-      expect(receipt.gasUsed).to.eq(90820);
+      expect(receipt.gasUsed).to.eq(90927);
     });
   });
 
@@ -505,7 +505,7 @@ describe("MerkleDistributor", () => {
         .connect(accounts[1])
         .claim(50000, 100, 100, proof);
       const receipt = await tx.wait();
-      expect(receipt.gasUsed).to.equal(127119);
+      expect(receipt.gasUsed).to.equal(127226);
     });
 
     it("gas deeper node", async () => {
@@ -518,7 +518,7 @@ describe("MerkleDistributor", () => {
         .connect(accounts[1])
         .claim(90000, 100, 100, proof);
       const receipt = await tx.wait();
-      expect(receipt.gasUsed).to.equal(127153);
+      expect(receipt.gasUsed).to.equal(127260);
     });
 
     it("gas average random distribution", async () => {
@@ -545,7 +545,7 @@ describe("MerkleDistributor", () => {
       );
 
       const average = total.div(receipts.length);
-      expect(average).to.equal(68582);
+      expect(average).to.equal(68688);
     });
 
     it("gas average first 25", async () => {
@@ -570,7 +570,7 @@ describe("MerkleDistributor", () => {
       );
 
       const average = total.div(receipts.length);
-      expect(average).to.eq(68571);
+      expect(average).to.eq(68677);
     });
   });
 
