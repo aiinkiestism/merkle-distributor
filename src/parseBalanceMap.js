@@ -33,11 +33,10 @@ function parseBalanceMap(balances) {
         (account) => ({
           address: account,
           earnings: `0x${balances[account].toString(16)}`,
-          reasons: '',
         })
       )
 
-  const dataByAddress = balancesInNewFormat.reduce((memo, { address: account, earnings, reasons }) => {
+  const dataByAddress = balancesInNewFormat.reduce((memo, { address: account, earnings }) => {
     if (!isAddress(account)) {
       throw new Error(`Found invalid address: ${account}`)
     }
@@ -46,13 +45,7 @@ function parseBalanceMap(balances) {
     const parsedNum = BigNumber.from(earnings)
     if (parsedNum.lte(0)) throw new Error(`Invalid amount for account: ${account}`)
 
-    const flags = {
-      isSOCKS: reasons.includes('socks'),
-      isLP: reasons.includes('lp'),
-      isUser: reasons.includes('user'),
-    }
-
-    memo[parsed] = { amount: parsedNum, ...(reasons === '' ? {} : { flags }) }
+    memo[parsed] = { amount: parsedNum }
     return memo
   }, {})
 
